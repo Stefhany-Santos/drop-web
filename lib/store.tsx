@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useCallback, useMemo, useState } from "react"
+import React, { createContext, useContext, useCallback, useEffect, useMemo, useState } from "react"
 import type {
   AuthProvider,
   CartItem,
@@ -125,6 +125,52 @@ function nowISO() {
   return new Date().toISOString()
 }
 
+// ── Cart persistence (sessionStorage) ──
+// Keeps cart alive across soft/hard navigations within the same tab.
+const CART_STORAGE_KEY = "sf_cart"
+const CART_DISCOUNT_KEY = "sf_cart_discount"
+const CART_COUPON_KEY = "sf_cart_coupon"
+
+function loadCart(): CartItem[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = sessionStorage.getItem(CART_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as CartItem[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveCart(cart: CartItem[], discount: number, coupon: string | null) {
+  if (typeof window === "undefined") return
+  try {
+    sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart))
+    sessionStorage.setItem(CART_DISCOUNT_KEY, String(discount))
+    sessionStorage.setItem(CART_COUPON_KEY, coupon ?? "")
+  } catch {
+    // quota exceeded -- silent fail
+  }
+}
+
+function loadCartDiscount(): number {
+  if (typeof window === "undefined") return 0
+  try {
+    return Number(sessionStorage.getItem(CART_DISCOUNT_KEY)) || 0
+  } catch {
+    return 0
+  }
+}
+
+function loadCartCoupon(): string | null {
+  if (typeof window === "undefined") return null
+  try {
+    const v = sessionStorage.getItem(CART_COUPON_KEY)
+    return v || null
+  } catch {
+    return null
+  }
+}
+
 export function StoreProvider({
   tenant,
   children,
@@ -199,10 +245,15 @@ export function StoreProvider({
     })
   }, [])
 
-  // Cart
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [cartDiscount, setCartDiscount] = useState(0)
-  const [cartCouponCode, setCartCouponCode] = useState<string | null>(null)
+  // Cart (persisted to sessionStorage)
+  const [cart, setCart] = useState<CartItem[]>(() => loadCart())
+  const [cartDiscount, setCartDiscount] = useState(() => loadCartDiscount())
+  const [cartCouponCode, setCartCouponCode] = useState<string | null>(() => loadCartCoupon())
+
+  // Sync cart to sessionStorage on every change
+  useEffect(() => {
+    saveCart(cart, cartDiscount, cartCouponCode)
+  }, [cart, cartDiscount, cartCouponCode])
 
   const addToCart = useCallback((productId: string, qty = 1, variantId?: string) => {
     setCart((prev) => {

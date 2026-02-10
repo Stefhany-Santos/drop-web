@@ -104,7 +104,6 @@ export default function ProductDetailPage({
   }
 
   function handleBuyNow() {
-    store.clearCart()
     store.addToCart(product.id, qty, selectedVariant)
     router.push(`${base}/checkout`)
   }

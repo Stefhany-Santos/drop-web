@@ -38,8 +38,6 @@ export function ProductCard({ product, cardStyle, theme, tenantSlug }: Props) {
   function handleBuyNow(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    // Clear cart and add only this product, then go straight to checkout
-    store.clearCart()
     store.addToCart(product.id, 1)
     router.push(`${base}/checkout`)
   }
