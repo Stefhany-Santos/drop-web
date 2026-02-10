@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search, ArrowRight, Sparkles, Package, Loader2 } from "lucide-react"
+import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { hexAlpha } from "@/lib/storefront-theme"
 import { StorefrontShell } from "@/components/storefront/storefront-shell"
@@ -67,15 +67,15 @@ export default function StorefrontHomePage() {
         <div
           className="absolute left-1/2 top-0 -translate-x-1/2"
           style={{
-            width: "600px",
-            height: "300px",
-            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.08)} 0%, transparent 70%)`,
+            width: "700px",
+            height: "400px",
+            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.1)} 0%, transparent 70%)`,
           }}
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-28">
+        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-32">
           <div className="mx-auto max-w-2xl text-center">
             <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+              className="mb-8 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider"
               style={{
                 borderColor: hexAlpha(theme.primary, 0.3),
                 color: theme.primary,
@@ -86,13 +86,13 @@ export default function StorefrontHomePage() {
               {store.branding.storeDisplayName}
             </div>
             <h1
-              className="text-balance text-3xl font-extrabold tracking-tight lg:text-5xl"
-              style={{ color: theme.foreground }}
+              className="text-balance text-4xl font-extrabold tracking-tight lg:text-6xl"
+              style={{ color: theme.foreground, lineHeight: 1.1 }}
             >
               {copy.headline}
             </h1>
             <p
-              className="mx-auto mt-5 max-w-lg text-pretty text-base leading-relaxed lg:text-lg"
+              className="mx-auto mt-6 max-w-lg text-pretty text-base leading-relaxed lg:text-lg"
               style={{ color: theme.mutedForeground }}
             >
               {copy.subheadline}
@@ -100,11 +100,11 @@ export default function StorefrontHomePage() {
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#products"
-                className="inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-all duration-200 hover:opacity-90"
+                className="inline-flex items-center gap-2.5 rounded-xl px-8 py-4 text-sm font-bold transition-all duration-200 hover:brightness-110"
                 style={{
                   backgroundColor: theme.primary,
                   color: theme.primaryForeground,
-                  boxShadow: `0 4px 14px ${hexAlpha(theme.primary, 0.35)}`,
+                  boxShadow: `0 4px 20px ${hexAlpha(theme.primary, 0.4)}`,
                 }}
               >
                 {copy.ctaPrimaryText}
@@ -112,26 +112,59 @@ export default function StorefrontHomePage() {
               </a>
               <Link
                 href={`${base}/support`}
-                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-semibold transition-all duration-200 hover:opacity-80"
+                className="inline-flex items-center gap-2 rounded-xl border px-8 py-4 text-sm font-medium transition-all duration-200"
                 style={{
                   borderColor: theme.border,
-                  color: theme.foreground,
+                  color: theme.mutedForeground,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.2)
+                  e.currentTarget.style.color = theme.foreground
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = theme.border
+                  e.currentTarget.style.color = theme.mutedForeground
                 }}
               >
                 {copy.ctaSecondaryText}
               </Link>
             </div>
+
+            {/* Trust signals */}
+            <div className="mt-14 flex flex-wrap items-center justify-center gap-6 lg:gap-10">
+              {[
+                { icon: ShieldCheck, label: "Pagamento seguro" },
+                { icon: Zap, label: "Entrega instantanea" },
+                { icon: Headphones, label: "Suporte dedicado" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-2 text-xs font-medium"
+                  style={{ color: theme.mutedForeground }}
+                >
+                  <item.icon className="h-4 w-4" style={{ color: hexAlpha(theme.primary, 0.7) }} />
+                  {item.label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Section divider */}
+      <div
+        className="mx-auto max-w-6xl px-4 lg:px-6"
+      >
+        <div className="h-px" style={{ backgroundColor: theme.border }} />
+      </div>
+
       {/* Products section */}
-      <section id="products" className="pb-24">
+      <section id="products" className="pb-28 pt-12">
         <div className="mx-auto max-w-6xl px-4 lg:px-6">
-          <div className="mb-10 flex flex-col gap-6">
-            <div className="flex flex-col gap-1.5">
+          <div className="mb-12 flex flex-col gap-8">
+            <div className="flex flex-col gap-2">
               <h2
-                className="text-xl font-extrabold tracking-tight lg:text-2xl"
+                className="text-2xl font-extrabold tracking-tight lg:text-3xl"
                 style={{ color: theme.foreground }}
               >
                 Produtos
@@ -201,7 +234,7 @@ export default function StorefrontHomePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visible.map((product) => (
                   <ProductCard
                     key={product.id}

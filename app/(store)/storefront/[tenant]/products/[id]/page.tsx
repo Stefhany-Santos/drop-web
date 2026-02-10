@@ -13,7 +13,9 @@ import {
   ChevronRight,
   Minus,
   Plus,
+  Zap,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
 import { formatCurrency } from "@/lib/format"
 import { hexAlpha } from "@/lib/storefront-theme"
@@ -52,6 +54,7 @@ export default function ProductDetailPage({
 }) {
   const { id } = use(params)
   const store = useStore()
+  const router = useRouter()
   const theme = store.themeTokens
   const base = `/storefront/${store.tenant}`
 
@@ -98,6 +101,12 @@ export default function ProductDetailPage({
   function handleAdd() {
     store.addToCart(product.id, qty, selectedVariant)
     toast.success(`${product.name} adicionado ao carrinho`)
+  }
+
+  function handleBuyNow() {
+    store.clearCart()
+    store.addToCart(product.id, qty, selectedVariant)
+    router.push(`${base}/checkout`)
   }
 
   return (
@@ -315,17 +324,38 @@ export default function ProductDetailPage({
                   <button
                     type="button"
                     onClick={handleAdd}
-                    className="flex h-12 flex-1 items-center justify-center gap-2.5 rounded-xl text-sm font-bold transition-all duration-200 hover:opacity-90"
+                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-all duration-200"
                     style={{
-                      backgroundColor: theme.primary,
-                      color: theme.primaryForeground,
-                      boxShadow: `0 4px 14px ${hexAlpha(theme.primary, 0.3)}`,
+                      borderColor: theme.border,
+                      color: theme.foreground,
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.25)
+                      e.currentTarget.style.backgroundColor = hexAlpha(theme.foreground, 0.05)
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = theme.border
+                      e.currentTarget.style.backgroundColor = "transparent"
                     }}
                   >
                     <ShoppingCart className="h-4 w-4" />
                     Adicionar ao carrinho
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="flex h-12 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold transition-all duration-200 hover:brightness-110"
+                  style={{
+                    backgroundColor: theme.primary,
+                    color: theme.primaryForeground,
+                    boxShadow: `0 4px 14px ${hexAlpha(theme.primary, 0.35)}`,
+                  }}
+                >
+                  <Zap className="h-4 w-4" />
+                  Comprar agora
+                </button>
               </div>
             </div>
           </div>
