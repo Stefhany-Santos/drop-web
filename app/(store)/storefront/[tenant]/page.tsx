@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones } from "lucide-react"
+import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones, X } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { hexAlpha } from "@/lib/storefront-theme"
 import { StorefrontShell } from "@/components/storefront/storefront-shell"
@@ -13,15 +13,43 @@ import { ProductCard } from "@/components/storefront/product-card"
 
 const PAGE_SIZE = 6
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(id)
+  }, [value, delay])
+  return debounced
+}
+
 export default function StorefrontHomePage() {
   const store = useStore()
   const theme = store.themeTokens
   const copy = store.copy
   const base = `/storefront/${store.tenant}`
 
-  const [search, setSearch] = useState("")
+  const [searchRaw, setSearchRaw] = useState("")
+  const search = useDebouncedValue(searchRaw, 300)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  // "/" keyboard shortcut to focus search
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes(
+          (e.target as HTMLElement)?.tagName ?? "",
+        )
+      ) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [])
 
   const activeProducts = useMemo(
     () => store.products.filter((p) => p.status === "ativo"),
@@ -216,26 +244,61 @@ export default function StorefrontHomePage() {
                 theme={theme}
                 tenantSlug={store.tenant}
               />
-              <div className="relative">
+              <div className="relative sm:w-72">
                 <Search
-                  className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
                   style={{ color: theme.mutedForeground }}
                 />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Buscar produtos..."
-                  value={search}
+                  value={searchRaw}
                   onChange={(e) => {
-                    setSearch(e.target.value)
+                    setSearchRaw(e.target.value)
                     setVisibleCount(PAGE_SIZE)
                   }}
-                  className="w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:ring-2 sm:w-64"
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") searchInputRef.current?.blur()
+                  }}
+                  className="w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm outline-none transition-shadow duration-200"
                   style={{
                     backgroundColor: theme.muted,
                     borderColor: theme.border,
                     color: theme.foreground,
                   }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.boxShadow = `0 0 0 2px ${hexAlpha(theme.primary, 0.25)}`
+                    e.currentTarget.style.borderColor = hexAlpha(theme.primary, 0.4)
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = theme.border
+                  }}
                 />
+                {searchRaw && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchRaw("")
+                      setVisibleCount(PAGE_SIZE)
+                      searchInputRef.current?.focus()
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 transition-colors duration-150"
+                    style={{ color: theme.mutedForeground }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = theme.foreground
+                      e.currentTarget.style.backgroundColor = hexAlpha(theme.foreground, 0.08)
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = theme.mutedForeground
+                      e.currentTarget.style.backgroundColor = "transparent"
+                    }}
+                    aria-label="Limpar busca"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -257,10 +320,10 @@ export default function StorefrontHomePage() {
                   Tente buscar com outros termos ou explore as categorias.
                 </p>
               </div>
-              {search && (
+              {searchRaw && (
                 <button
                   type="button"
-                  onClick={() => setSearch("")}
+                  onClick={() => setSearchRaw("")}
                   className="rounded-xl border px-5 py-2.5 text-xs font-semibold transition-opacity hover:opacity-80"
                   style={{ borderColor: theme.border, color: theme.foreground }}
                 >
