@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones } from "lucide-react"
 import { useStore } from "@/lib/store"
@@ -55,29 +55,44 @@ export default function StorefrontHomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Dot pattern */}
+        {/* Blueprint grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, ${theme.foreground} 1px, transparent 0)`,
-            backgroundSize: "32px 32px",
+            backgroundImage: [
+              `linear-gradient(${hexAlpha(theme.border, 0.35)} 1px, transparent 1px)`,
+              `linear-gradient(90deg, ${hexAlpha(theme.border, 0.35)} 1px, transparent 1px)`,
+            ].join(", "),
+            backgroundSize: "64px 64px",
           }}
         />
-        {/* Gradient glow */}
+        {/* Radial glow */}
         <div
-          className="absolute left-1/2 top-0 -translate-x-1/2"
+          className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: "700px",
-            height: "400px",
-            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.08)} 0%, transparent 70%)`,
+            width: "640px",
+            height: "480px",
+            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.07)} 0%, transparent 65%)`,
           }}
         />
+        {/* Fade edges so the grid doesn't end abruptly */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: [
+              `linear-gradient(to right, ${theme.background} 0%, transparent 10%, transparent 90%, ${theme.background} 100%)`,
+              `linear-gradient(to bottom, transparent 60%, ${theme.background} 100%)`,
+            ].join(", "),
+          }}
+        />
+
         <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-28">
           <div className="mx-auto max-w-xl text-center">
+            {/* Store badge */}
             <div
               className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest"
               style={{
-                borderColor: hexAlpha(theme.primary, 0.25),
+                borderColor: hexAlpha(theme.primary, 0.2),
                 color: theme.primary,
                 backgroundColor: hexAlpha(theme.primary, 0.05),
               }}
@@ -85,46 +100,58 @@ export default function StorefrontHomePage() {
               <Sparkles className="h-3 w-3" />
               {store.branding.storeDisplayName}
             </div>
+
+            {/* Headline */}
             <h1
               className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
-              style={{ color: theme.foreground, lineHeight: 1.15 }}
+              style={{ color: theme.foreground, lineHeight: 1.12 }}
             >
               {copy.headline}
             </h1>
+
+            {/* Subheadline */}
             <p
-              className="mx-auto mt-4 max-w-md text-pretty text-sm leading-relaxed lg:text-base"
+              className="mx-auto mt-5 max-w-md text-pretty text-sm leading-relaxed lg:text-base"
               style={{ color: theme.mutedForeground }}
             >
               {copy.subheadline}
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+            {/* CTAs */}
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#products"
-                className="inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-all duration-200"
+                className="group inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-shadow duration-200"
                 style={{
                   backgroundColor: theme.primary,
                   color: theme.primaryForeground,
-                  boxShadow: `0 2px 16px ${hexAlpha(theme.primary, 0.3)}`,
+                  boxShadow: `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 4px 24px ${hexAlpha(theme.primary, 0.45)}`
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${hexAlpha(theme.primary, 0.15)}, 0 4px 20px ${hexAlpha(theme.primary, 0.4)}`
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 2px 16px ${hexAlpha(theme.primary, 0.3)}`
+                  e.currentTarget.style.boxShadow = `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${hexAlpha(theme.primary, 0.15)}, 0 4px 20px ${hexAlpha(theme.primary, 0.4)}`
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`
                 }}
               >
                 {copy.ctaPrimaryText}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
               <Link
                 href={`${base}/support`}
-                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-medium transition-all duration-200"
+                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-medium transition-colors duration-200"
                 style={{
                   borderColor: theme.border,
                   color: theme.mutedForeground,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.2)
+                  e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.18)
                   e.currentTarget.style.color = theme.foreground
                 }}
                 onMouseLeave={(e) => {
@@ -137,27 +164,23 @@ export default function StorefrontHomePage() {
             </div>
 
             {/* Trust signals */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
               {[
                 { icon: ShieldCheck, label: "Pagamento seguro" },
-                { icon: Zap, label: "Entrega instantanea" },
+                { icon: Zap, label: "Entrega digital" },
                 { icon: Headphones, label: "Suporte dedicado" },
-              ].map((item, idx) => (
-                <React.Fragment key={item.label}>
-                  {idx > 0 && (
-                    <div
-                      className="hidden h-3 w-px sm:block"
-                      style={{ backgroundColor: theme.border }}
-                    />
-                  )}
-                  <div
-                    className="flex items-center gap-2 text-[11px] font-medium"
-                    style={{ color: theme.mutedForeground }}
-                  >
-                    <item.icon className="h-3.5 w-3.5" style={{ color: hexAlpha(theme.primary, 0.6) }} />
-                    {item.label}
-                  </div>
-                </React.Fragment>
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-medium"
+                  style={{
+                    borderColor: theme.border,
+                    color: theme.mutedForeground,
+                  }}
+                >
+                  <item.icon className="h-3 w-3" style={{ color: hexAlpha(theme.primary, 0.55) }} />
+                  {item.label}
+                </div>
               ))}
             </div>
           </div>
