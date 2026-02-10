@@ -21,6 +21,12 @@ import type {
   TenantTheme,
 } from "./types"
 import {
+  loadDiscordSession,
+  saveDiscordSession,
+  clearDiscordSession,
+  type DiscordSession,
+} from "./discord-auth"
+import {
   DEFAULT_PRODUCT_CARD_STYLE,
   DEFAULT_TENANT_BRANDING,
   DEFAULT_TENANT_COPY,
@@ -57,6 +63,7 @@ interface StoreState {
   customerSession: CustomerSession
   loginWithGoogle: (email: string, name: string) => void
   loginWithDiscord: (username: string, discordId: string) => void
+  loginWithDiscordOAuth: (profile: DiscordSession) => void
   logoutCustomer: () => void
 
   // Cart
@@ -220,7 +227,7 @@ export function StoreProvider({
   }, [])
 
   const loginWithDiscord = useCallback((username: string, discordId: string) => {
-    setCustomerSession({
+    const session: CustomerSession = {
       isLoggedIn: true,
       userId: `discord-${discordId}`,
       name: username,
@@ -229,7 +236,24 @@ export function StoreProvider({
       discordId,
       discordUsername: username,
       avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=5865F2&color=fff&size=80`,
-    })
+    }
+    setCustomerSession(session)
+    saveDiscordSession({ id: discordId, username, displayName: username, email: null, avatarUrl: session.avatarUrl })
+  }, [])
+
+  const loginWithDiscordOAuth = useCallback((profile: DiscordSession) => {
+    const session: CustomerSession = {
+      isLoggedIn: true,
+      userId: `discord-${profile.id}`,
+      name: profile.displayName || profile.username,
+      email: profile.email,
+      provider: "discord",
+      discordId: profile.id,
+      discordUsername: profile.username,
+      avatarUrl: profile.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username)}&background=5865F2&color=fff&size=80`,
+    }
+    setCustomerSession(session)
+    saveDiscordSession(profile)
   }, [])
 
   const logoutCustomer = useCallback(() => {
@@ -243,6 +267,24 @@ export function StoreProvider({
       discordUsername: null,
       avatarUrl: null,
     })
+    clearDiscordSession()
+  }, [])
+
+  // Hydrate Discord session from sessionStorage on mount
+  useEffect(() => {
+    const stored = loadDiscordSession()
+    if (stored) {
+      setCustomerSession({
+        isLoggedIn: true,
+        userId: `discord-${stored.id}`,
+        name: stored.displayName || stored.username,
+        email: stored.email,
+        provider: "discord",
+        discordId: stored.id,
+        discordUsername: stored.username,
+        avatarUrl: stored.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(stored.username)}&background=5865F2&color=fff&size=80`,
+      })
+    }
   }, [])
 
   // Cart — always start empty for SSR safety, then hydrate from sessionStorage
@@ -527,6 +569,7 @@ export function StoreProvider({
       customerSession,
       loginWithGoogle,
       loginWithDiscord,
+      loginWithDiscordOAuth,
       logoutCustomer,
       cart,
       cartDiscount,
