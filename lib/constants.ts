@@ -57,11 +57,13 @@ export const TENANTS = [
   { slug: "game-store", name: "Game Store", logoUrl: "" },
 ] as const
 
-// ── NexShop Legal Info ──
+// ── Platform Legal Info ──
+// White-label: configurable per tenant in a future backend integration.
+// For now, these are placeholder defaults.
 export const NEXSHOP_LEGAL = {
-  companyName: "NexShop Tecnologia Ltda",
+  companyName: "Drop Tecnologia Ltda",
   cnpj: "00.000.000/0001-00",
   address: "Sao Paulo, SP - Brasil",
   platformDescription:
-    "NexShop e uma plataforma de e-commerce para produtos digitais. Todos os produtos sao de responsabilidade de seus respectivos vendedores.",
+    "Plataforma de e-commerce para produtos digitais. Todos os produtos sao de responsabilidade de seus respectivos vendedores.",
 } as const

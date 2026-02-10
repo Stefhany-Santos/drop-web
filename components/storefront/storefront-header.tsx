@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   ShoppingCart,
@@ -24,6 +24,8 @@ export function StorefrontHeader() {
   const base = `/storefront/${store.tenant}`
   const [mobileOpen, setMobileOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   const navLinks = [
     { href: base, label: "Produtos", icon: Package },
@@ -35,6 +37,7 @@ export function StorefrontHeader() {
     <>
       <header
         className="sticky top-0 z-30"
+        suppressHydrationWarning
         style={{
           backgroundColor: hexAlpha(theme.card, 0.85),
           borderBottom: `1px solid ${theme.border}`,
@@ -219,7 +222,7 @@ export function StorefrontHeader() {
             >
               <ShoppingCart className="h-4 w-4" />
               <span className="hidden sm:inline">Carrinho</span>
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span
                   className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                   style={{

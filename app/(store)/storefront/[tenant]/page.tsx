@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Search, ArrowRight, Sparkles, Package, Loader2 } from "lucide-react"
+import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones, X } from "lucide-react"
 import { useStore } from "@/lib/store"
 import { hexAlpha } from "@/lib/storefront-theme"
 import { StorefrontShell } from "@/components/storefront/storefront-shell"
@@ -13,15 +13,43 @@ import { ProductCard } from "@/components/storefront/product-card"
 
 const PAGE_SIZE = 6
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(id)
+  }, [value, delay])
+  return debounced
+}
+
 export default function StorefrontHomePage() {
   const store = useStore()
   const theme = store.themeTokens
   const copy = store.copy
   const base = `/storefront/${store.tenant}`
 
-  const [search, setSearch] = useState("")
+  const [searchRaw, setSearchRaw] = useState("")
+  const search = useDebouncedValue(searchRaw, 300)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  // "/" keyboard shortcut to focus search
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes(
+          (e.target as HTMLElement)?.tagName ?? "",
+        )
+      ) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [])
 
   const activeProducts = useMemo(
     () => store.products.filter((p) => p.status === "ativo"),
@@ -55,83 +83,152 @@ export default function StorefrontHomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Dot pattern */}
+        {/* Blueprint grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, ${theme.foreground} 1px, transparent 0)`,
-            backgroundSize: "32px 32px",
+            backgroundImage: [
+              `linear-gradient(${hexAlpha(theme.border, 0.35)} 1px, transparent 1px)`,
+              `linear-gradient(90deg, ${hexAlpha(theme.border, 0.35)} 1px, transparent 1px)`,
+            ].join(", "),
+            backgroundSize: "64px 64px",
           }}
         />
-        {/* Gradient glow */}
+        {/* Radial glow */}
         <div
-          className="absolute left-1/2 top-0 -translate-x-1/2"
+          className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2"
           style={{
-            width: "600px",
-            height: "300px",
-            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.08)} 0%, transparent 70%)`,
+            width: "640px",
+            height: "480px",
+            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.07)} 0%, transparent 65%)`,
           }}
         />
+        {/* Fade edges so the grid doesn't end abruptly */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: [
+              `linear-gradient(to right, ${theme.background} 0%, transparent 10%, transparent 90%, ${theme.background} 100%)`,
+              `linear-gradient(to bottom, transparent 60%, ${theme.background} 100%)`,
+            ].join(", "),
+          }}
+        />
+
         <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-28">
-          <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto max-w-xl text-center">
+            {/* Store badge */}
             <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest"
               style={{
-                borderColor: hexAlpha(theme.primary, 0.3),
+                borderColor: hexAlpha(theme.primary, 0.2),
                 color: theme.primary,
-                backgroundColor: hexAlpha(theme.primary, 0.06),
+                backgroundColor: hexAlpha(theme.primary, 0.05),
               }}
             >
               <Sparkles className="h-3 w-3" />
               {store.branding.storeDisplayName}
             </div>
+
+            {/* Headline */}
             <h1
-              className="text-balance text-3xl font-extrabold tracking-tight lg:text-5xl"
-              style={{ color: theme.foreground }}
+              className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
+              style={{ color: theme.foreground, lineHeight: 1.12 }}
             >
               {copy.headline}
             </h1>
+
+            {/* Subheadline */}
             <p
-              className="mx-auto mt-5 max-w-lg text-pretty text-base leading-relaxed lg:text-lg"
+              className="mx-auto mt-5 max-w-md text-pretty text-sm leading-relaxed lg:text-base"
               style={{ color: theme.mutedForeground }}
             >
               {copy.subheadline}
             </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+            {/* CTAs */}
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#products"
-                className="inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-all duration-200 hover:opacity-90"
+                className="group inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-shadow duration-200"
                 style={{
                   backgroundColor: theme.primary,
                   color: theme.primaryForeground,
-                  boxShadow: `0 4px 14px ${hexAlpha(theme.primary, 0.35)}`,
+                  boxShadow: `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${hexAlpha(theme.primary, 0.15)}, 0 4px 20px ${hexAlpha(theme.primary, 0.4)}`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${hexAlpha(theme.primary, 0.15)}, 0 4px 20px ${hexAlpha(theme.primary, 0.4)}`
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 0 ${hexAlpha(theme.primary, 0)}, 0 1px 12px ${hexAlpha(theme.primary, 0.25)}`
                 }}
               >
                 {copy.ctaPrimaryText}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </a>
               <Link
                 href={`${base}/support`}
-                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-semibold transition-all duration-200 hover:opacity-80"
+                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-medium transition-colors duration-200"
                 style={{
                   borderColor: theme.border,
-                  color: theme.foreground,
+                  color: theme.mutedForeground,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.18)
+                  e.currentTarget.style.color = theme.foreground
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = theme.border
+                  e.currentTarget.style.color = theme.mutedForeground
                 }}
               >
                 {copy.ctaSecondaryText}
               </Link>
             </div>
+
+            {/* Trust signals */}
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+              {[
+                { icon: ShieldCheck, label: "Pagamento seguro" },
+                { icon: Zap, label: "Entrega digital" },
+                { icon: Headphones, label: "Suporte dedicado" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-medium"
+                  style={{
+                    borderColor: theme.border,
+                    color: theme.mutedForeground,
+                  }}
+                >
+                  <item.icon className="h-3 w-3" style={{ color: hexAlpha(theme.primary, 0.55) }} />
+                  {item.label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Section divider */}
+      <div
+        className="mx-auto max-w-6xl px-4 lg:px-6"
+      >
+        <div className="h-px" style={{ backgroundColor: theme.border }} />
+      </div>
+
       {/* Products section */}
-      <section id="products" className="pb-24">
+      <section id="products" className="pb-28 pt-12">
         <div className="mx-auto max-w-6xl px-4 lg:px-6">
-          <div className="mb-10 flex flex-col gap-6">
-            <div className="flex flex-col gap-1.5">
+          <div className="mb-12 flex flex-col gap-8">
+            <div className="flex flex-col gap-2">
               <h2
-                className="text-xl font-extrabold tracking-tight lg:text-2xl"
+                className="text-2xl font-extrabold tracking-tight lg:text-3xl"
                 style={{ color: theme.foreground }}
               >
                 Produtos
@@ -147,26 +244,61 @@ export default function StorefrontHomePage() {
                 theme={theme}
                 tenantSlug={store.tenant}
               />
-              <div className="relative">
+              <div className="relative sm:w-72">
                 <Search
-                  className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2"
                   style={{ color: theme.mutedForeground }}
                 />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Buscar produtos..."
-                  value={search}
+                  value={searchRaw}
                   onChange={(e) => {
-                    setSearch(e.target.value)
+                    setSearchRaw(e.target.value)
                     setVisibleCount(PAGE_SIZE)
                   }}
-                  className="w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:ring-2 sm:w-64"
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") searchInputRef.current?.blur()
+                  }}
+                  className="w-full rounded-xl border py-2.5 pl-10 pr-9 text-sm outline-none transition-shadow duration-200"
                   style={{
                     backgroundColor: theme.muted,
                     borderColor: theme.border,
                     color: theme.foreground,
                   }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.boxShadow = `0 0 0 2px ${hexAlpha(theme.primary, 0.25)}`
+                    e.currentTarget.style.borderColor = hexAlpha(theme.primary, 0.4)
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = theme.border
+                  }}
                 />
+                {searchRaw && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchRaw("")
+                      setVisibleCount(PAGE_SIZE)
+                      searchInputRef.current?.focus()
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 transition-colors duration-150"
+                    style={{ color: theme.mutedForeground }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = theme.foreground
+                      e.currentTarget.style.backgroundColor = hexAlpha(theme.foreground, 0.08)
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = theme.mutedForeground
+                      e.currentTarget.style.backgroundColor = "transparent"
+                    }}
+                    aria-label="Limpar busca"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -188,10 +320,10 @@ export default function StorefrontHomePage() {
                   Tente buscar com outros termos ou explore as categorias.
                 </p>
               </div>
-              {search && (
+              {searchRaw && (
                 <button
                   type="button"
-                  onClick={() => setSearch("")}
+                  onClick={() => setSearchRaw("")}
                   className="rounded-xl border px-5 py-2.5 text-xs font-semibold transition-opacity hover:opacity-80"
                   style={{ borderColor: theme.border, color: theme.foreground }}
                 >
@@ -201,7 +333,7 @@ export default function StorefrontHomePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visible.map((product) => (
                   <ProductCard
                     key={product.id}

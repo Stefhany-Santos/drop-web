@@ -2,7 +2,8 @@
 
 import React from "react"
 import Link from "next/link"
-import { ShoppingCart, Package } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ShoppingCart, Package, Zap } from "lucide-react"
 import { formatCurrency } from "@/lib/format"
 import { getCardShadow, hexAlpha } from "@/lib/storefront-theme"
 import type { Product, ProductCardStyle, TenantTheme } from "@/lib/types"
@@ -18,16 +19,27 @@ interface Props {
 
 export function ProductCard({ product, cardStyle, theme, tenantSlug }: Props) {
   const store = useStore()
+  const router = useRouter()
   const cs = product.cardStyleOverride
     ? { ...cardStyle, ...product.cardStyleOverride }
     : cardStyle
   const base = `/storefront/${tenantSlug}`
 
-  function handleAdd(e: React.MouseEvent) {
+  const categoryName =
+    store.categories.find((c) => c.id === product.categoryId)?.name ?? "Produto"
+
+  function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     store.addToCart(product.id, 1)
     toast.success(`${product.name} adicionado ao carrinho`)
+  }
+
+  function handleBuyNow(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    store.addToCart(product.id, 1)
+    router.push(`${base}/checkout`)
   }
 
   return (
@@ -90,15 +102,16 @@ export function ProductCard({ product, cardStyle, theme, tenantSlug }: Props) {
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        {/* Category hint */}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Category tag */}
         <span
-          className="text-[10px] font-semibold uppercase tracking-wider"
-          style={{ color: cs.textColor }}
+          className="mb-2 text-[10px] font-semibold uppercase tracking-wider"
+          style={{ color: theme.primary }}
         >
-          {store.categories.find((c) => c.id === product.categoryId)?.name ?? "Produto"}
+          {categoryName}
         </span>
 
+        {/* Title */}
         <h3
           className="line-clamp-1 text-sm font-bold leading-snug"
           style={{ color: cs.titleColor }}
@@ -106,44 +119,79 @@ export function ProductCard({ product, cardStyle, theme, tenantSlug }: Props) {
           {product.name}
         </h3>
 
+        {/* Description */}
         <p
-          className="line-clamp-2 text-xs leading-relaxed"
+          className="mt-1.5 line-clamp-2 text-xs leading-relaxed"
           style={{ color: cs.textColor }}
         >
           {product.description}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
-          <div className="flex flex-col">
+        {/* Price */}
+        <div className="mt-auto flex flex-col pt-4">
+          <div className="flex items-baseline gap-1.5">
             {product.variants.length > 0 && (
               <span className="text-[10px] font-medium" style={{ color: cs.textColor }}>
                 a partir de
               </span>
             )}
-            <span className="text-lg font-extrabold tracking-tight" style={{ color: cs.priceColor }}>
-              {formatCurrency(product.price)}
-            </span>
           </div>
+          <span
+            className="text-xl font-extrabold tracking-tight"
+            style={{ color: cs.priceColor }}
+          >
+            {formatCurrency(product.price)}
+          </span>
+        </div>
+
+        {/* Dual CTAs */}
+        <div className="mt-4 flex gap-2">
+          {/* Add to cart - Secondary */}
           <button
             type="button"
-            onClick={handleAdd}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold transition-all duration-200"
+            onClick={handleAddToCart}
+            className="flex flex-1 items-center justify-center gap-1.5 border px-3 py-2.5 text-xs font-semibold transition-all duration-200"
+            style={{
+              borderColor: cs.borderColor,
+              color: cs.titleColor,
+              backgroundColor: "transparent",
+              borderRadius: `${Math.max(cs.radius - 4, 6)}px`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = hexAlpha(theme.foreground, 0.25)
+              e.currentTarget.style.backgroundColor = hexAlpha(theme.foreground, 0.05)
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = cs.borderColor
+              e.currentTarget.style.backgroundColor = "transparent"
+            }}
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only">Carrinho</span>
+          </button>
+
+          {/* Buy now - Primary */}
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            className="flex flex-[2] items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold transition-all duration-200"
             style={{
               backgroundColor: cs.buttonBg,
               color: cs.buttonText,
               borderRadius: `${Math.max(cs.radius - 4, 6)}px`,
+              boxShadow: `0 2px 8px ${hexAlpha(cs.buttonBg, 0.3)}`,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "0.85"
-              e.currentTarget.style.transform = "scale(1.03)"
+              e.currentTarget.style.opacity = "0.9"
+              e.currentTarget.style.transform = "scale(1.02)"
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.opacity = "1"
               e.currentTarget.style.transform = "scale(1)"
             }}
           >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            Comprar
+            <Zap className="h-3.5 w-3.5" />
+            Comprar agora
           </button>
         </div>
       </div>

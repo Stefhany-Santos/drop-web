@@ -15,6 +15,7 @@ export function StorefrontShell({ theme, children }: Props) {
   return (
     <div
       className="flex min-h-screen flex-col"
+      suppressHydrationWarning
       style={{
         ...vars,
         backgroundColor: theme.background,

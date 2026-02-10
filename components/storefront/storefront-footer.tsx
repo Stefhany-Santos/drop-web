@@ -1,134 +1,172 @@
 "use client"
 
 import Link from "next/link"
-import { Mail, HelpCircle, Shield } from "lucide-react"
+import { Mail, HelpCircle } from "lucide-react"
 import { useStore } from "@/lib/store"
-import { NEXSHOP_LEGAL } from "@/lib/constants"
 import { hexAlpha } from "@/lib/storefront-theme"
 
+/* ─────────────────────────────────────────────
+   Footer link — reusable to avoid inline repetition
+   ───────────────────────────────────────────── */
+function FooterLink({
+  href,
+  children,
+  theme,
+  external,
+}: {
+  href: string
+  children: React.ReactNode
+  theme: { foreground: string }
+  external?: boolean
+}) {
+  const restColor = hexAlpha(theme.foreground, 0.55)
+  const Tag = external ? "a" : Link
+  const extra = external ? { target: "_blank" as const, rel: "noopener noreferrer" } : {}
+
+  return (
+    <Tag
+      href={href}
+      className="text-[13px] leading-relaxed transition-colors duration-150"
+      style={{ color: restColor }}
+      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.currentTarget.style.color = theme.foreground
+      }}
+      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.currentTarget.style.color = restColor
+      }}
+      {...extra}
+    >
+      {children}
+    </Tag>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   StorefrontFooter
+   ───────────────────────────────────────────── */
 export function StorefrontFooter() {
   const store = useStore()
   const theme = store.themeTokens
   const copy = store.copy
   const base = `/storefront/${store.tenant}`
   const year = new Date().getFullYear()
+  const storeName = store.branding.storeDisplayName
 
   return (
     <footer
       className="mt-auto border-t"
+      suppressHydrationWarning
       style={{ borderColor: theme.border, backgroundColor: theme.card }}
     >
       <div className="mx-auto max-w-6xl px-4 lg:px-6">
-        <div className="flex flex-col gap-10 py-12 lg:flex-row lg:justify-between">
-          {/* Brand column */}
-          <div className="flex flex-col gap-3 lg:max-w-xs">
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold"
-                style={{ backgroundColor: theme.primary, color: theme.primaryForeground }}
+        {/* ── Top: Brand + nav columns ── */}
+        <div className="grid grid-cols-2 gap-8 py-12 sm:grid-cols-4 lg:gap-12">
+          {/* Brand block — spans full width on mobile, 1 col on sm+ */}
+          <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
+            <div className="flex items-center gap-2.5">
+              {store.branding.logoUrl ? (
+                <img
+                  src={store.branding.logoUrl}
+                  alt={storeName}
+                  className="h-7 w-7 rounded-lg object-contain"
+                />
+              ) : (
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold"
+                  style={{
+                    backgroundColor: theme.primary,
+                    color: theme.primaryForeground,
+                  }}
+                >
+                  {storeName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span
+                className="text-sm font-bold tracking-tight"
+                style={{ color: theme.foreground }}
               >
-                {store.branding.storeDisplayName.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm font-bold" style={{ color: theme.foreground }}>
-                {store.branding.storeDisplayName}
+                {storeName}
               </span>
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: theme.mutedForeground }}>
+            <p
+              className="max-w-[220px] text-xs leading-relaxed"
+              style={{ color: theme.mutedForeground }}
+            >
               {copy.subheadline}
             </p>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-12">
-            <div className="flex flex-col gap-3">
-              <span
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: theme.mutedForeground }}
-              >
-                Loja
+          {/* Column — Loja */}
+          <nav className="flex flex-col gap-2.5">
+            <span
+              className="mb-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: theme.mutedForeground }}
+            >
+              Loja
+            </span>
+            <FooterLink href={base} theme={theme}>
+              Produtos
+            </FooterLink>
+            <FooterLink href={`${base}/categories/scripts-fivem`} theme={theme}>
+              Categorias
+            </FooterLink>
+          </nav>
+
+          {/* Column — Ajuda */}
+          <nav className="flex flex-col gap-2.5">
+            <span
+              className="mb-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: theme.mutedForeground }}
+            >
+              Ajuda
+            </span>
+            <FooterLink href={`${base}/support`} theme={theme}>
+              <span className="inline-flex items-center gap-1.5">
+                <HelpCircle className="h-3.5 w-3.5" />
+                Suporte
               </span>
-              <div className="flex flex-col gap-2.5">
-                <Link href={base} className="text-[13px] transition-opacity hover:opacity-70" style={{ color: theme.foreground }}>
-                  Produtos
-                </Link>
-                <Link href={`${base}/categories/scripts-fivem`} className="text-[13px] transition-opacity hover:opacity-70" style={{ color: theme.foreground }}>
-                  Categorias
-                </Link>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: theme.mutedForeground }}
+            </FooterLink>
+            {copy.supportEmail && (
+              <FooterLink
+                href={`mailto:${copy.supportEmail}`}
+                theme={theme}
+                external
               >
-                Ajuda
-              </span>
-              <div className="flex flex-col gap-2.5">
-                <Link
-                  href={`${base}/support`}
-                  className="inline-flex items-center gap-1.5 text-[13px] transition-opacity hover:opacity-70"
-                  style={{ color: theme.foreground }}
-                >
-                  <HelpCircle className="h-3.5 w-3.5" />
-                  Suporte
-                </Link>
-                {copy.supportEmail && (
-                  <a
-                    href={`mailto:${copy.supportEmail}`}
-                    className="inline-flex items-center gap-1.5 text-[13px] transition-opacity hover:opacity-70"
-                    style={{ color: theme.foreground }}
-                  >
-                    <Mail className="h-3.5 w-3.5" />
-                    {copy.supportEmail}
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: theme.mutedForeground }}
-              >
-                Conta
-              </span>
-              <div className="flex flex-col gap-2.5">
-                <Link href={`${base}/account`} className="text-[13px] transition-opacity hover:opacity-70" style={{ color: theme.foreground }}>
-                  Minha Conta
-                </Link>
-                <Link href={`${base}/cart`} className="text-[13px] transition-opacity hover:opacity-70" style={{ color: theme.foreground }}>
-                  Carrinho
-                </Link>
-              </div>
-            </div>
-          </div>
+                <span className="inline-flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  {copy.supportEmail}
+                </span>
+              </FooterLink>
+            )}
+          </nav>
+
+          {/* Column — Conta */}
+          <nav className="flex flex-col gap-2.5">
+            <span
+              className="mb-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: theme.mutedForeground }}
+            >
+              Conta
+            </span>
+            <FooterLink href={`${base}/account`} theme={theme}>
+              Minha Conta
+            </FooterLink>
+            <FooterLink href={`${base}/cart`} theme={theme}>
+              Carrinho
+            </FooterLink>
+          </nav>
         </div>
 
-        {/* Legal section */}
+        {/* ── Bottom bar ── */}
         <div
-          className="flex flex-col gap-5 border-t py-8 lg:flex-row lg:items-start lg:justify-between"
+          className="flex items-center justify-between border-t py-6"
           style={{ borderColor: theme.border }}
         >
-          <div className="flex items-start gap-3">
-            <div
-              className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-              style={{ backgroundColor: hexAlpha(theme.mutedForeground, 0.1) }}
-            >
-              <Shield className="h-4 w-4" style={{ color: theme.mutedForeground }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <p className="text-[11px] font-semibold" style={{ color: theme.mutedForeground }}>
-                {NEXSHOP_LEGAL.companyName} - CNPJ: {NEXSHOP_LEGAL.cnpj}
-              </p>
-              <p className="text-[11px]" style={{ color: theme.mutedForeground }}>
-                {NEXSHOP_LEGAL.address}
-              </p>
-              <p className="mt-0.5 max-w-lg text-[10px] leading-relaxed" style={{ color: theme.mutedForeground }}>
-                {NEXSHOP_LEGAL.platformDescription}
-              </p>
-            </div>
-          </div>
-          <p className="shrink-0 text-[11px]" style={{ color: theme.mutedForeground }}>
-            {year} {copy.footerText}
+          <p
+            className="text-[11px]"
+            style={{ color: hexAlpha(theme.mutedForeground, 0.7) }}
+          >
+            &copy; {year} {storeName}. Todos os direitos reservados.
           </p>
         </div>
       </div>
