@@ -55,6 +55,7 @@ export function StorefrontFooter() {
   return (
     <footer
       className="mt-auto border-t"
+      suppressHydrationWarning
       style={{ borderColor: theme.border, backgroundColor: theme.card }}
     >
       <div className="mx-auto max-w-6xl px-4 lg:px-6">

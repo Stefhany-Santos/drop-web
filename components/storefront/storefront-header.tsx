@@ -35,6 +35,7 @@ export function StorefrontHeader() {
     <>
       <header
         className="sticky top-0 z-30"
+        suppressHydrationWarning
         style={{
           backgroundColor: hexAlpha(theme.card, 0.85),
           borderBottom: `1px solid ${theme.border}`,
