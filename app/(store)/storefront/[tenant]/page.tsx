@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import Link from "next/link"
 import { Search, ArrowRight, Sparkles, Package, Loader2, ShieldCheck, Zap, Headphones } from "lucide-react"
 import { useStore } from "@/lib/store"
@@ -69,42 +69,48 @@ export default function StorefrontHomePage() {
           style={{
             width: "700px",
             height: "400px",
-            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.1)} 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse, ${hexAlpha(theme.primary, 0.08)} 0%, transparent 70%)`,
           }}
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-32">
-          <div className="mx-auto max-w-2xl text-center">
+        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:px-6 lg:py-28">
+          <div className="mx-auto max-w-xl text-center">
             <div
-              className="mb-8 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest"
               style={{
-                borderColor: hexAlpha(theme.primary, 0.3),
+                borderColor: hexAlpha(theme.primary, 0.25),
                 color: theme.primary,
-                backgroundColor: hexAlpha(theme.primary, 0.06),
+                backgroundColor: hexAlpha(theme.primary, 0.05),
               }}
             >
               <Sparkles className="h-3 w-3" />
               {store.branding.storeDisplayName}
             </div>
             <h1
-              className="text-balance text-4xl font-extrabold tracking-tight lg:text-6xl"
-              style={{ color: theme.foreground, lineHeight: 1.1 }}
+              className="text-balance text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
+              style={{ color: theme.foreground, lineHeight: 1.15 }}
             >
               {copy.headline}
             </h1>
             <p
-              className="mx-auto mt-6 max-w-lg text-pretty text-base leading-relaxed lg:text-lg"
+              className="mx-auto mt-4 max-w-md text-pretty text-sm leading-relaxed lg:text-base"
               style={{ color: theme.mutedForeground }}
             >
               {copy.subheadline}
             </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
                 href="#products"
-                className="inline-flex items-center gap-2.5 rounded-xl px-8 py-4 text-sm font-bold transition-all duration-200 hover:brightness-110"
+                className="inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold transition-all duration-200"
                 style={{
                   backgroundColor: theme.primary,
                   color: theme.primaryForeground,
-                  boxShadow: `0 4px 20px ${hexAlpha(theme.primary, 0.4)}`,
+                  boxShadow: `0 2px 16px ${hexAlpha(theme.primary, 0.3)}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 4px 24px ${hexAlpha(theme.primary, 0.45)}`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 2px 16px ${hexAlpha(theme.primary, 0.3)}`
                 }}
               >
                 {copy.ctaPrimaryText}
@@ -112,7 +118,7 @@ export default function StorefrontHomePage() {
               </a>
               <Link
                 href={`${base}/support`}
-                className="inline-flex items-center gap-2 rounded-xl border px-8 py-4 text-sm font-medium transition-all duration-200"
+                className="inline-flex items-center gap-2 rounded-xl border px-7 py-3.5 text-sm font-medium transition-all duration-200"
                 style={{
                   borderColor: theme.border,
                   color: theme.mutedForeground,
@@ -131,20 +137,27 @@ export default function StorefrontHomePage() {
             </div>
 
             {/* Trust signals */}
-            <div className="mt-14 flex flex-wrap items-center justify-center gap-6 lg:gap-10">
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
               {[
                 { icon: ShieldCheck, label: "Pagamento seguro" },
                 { icon: Zap, label: "Entrega instantanea" },
                 { icon: Headphones, label: "Suporte dedicado" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center gap-2 text-xs font-medium"
-                  style={{ color: theme.mutedForeground }}
-                >
-                  <item.icon className="h-4 w-4" style={{ color: hexAlpha(theme.primary, 0.7) }} />
-                  {item.label}
-                </div>
+              ].map((item, idx) => (
+                <React.Fragment key={item.label}>
+                  {idx > 0 && (
+                    <div
+                      className="hidden h-3 w-px sm:block"
+                      style={{ backgroundColor: theme.border }}
+                    />
+                  )}
+                  <div
+                    className="flex items-center gap-2 text-[11px] font-medium"
+                    style={{ color: theme.mutedForeground }}
+                  >
+                    <item.icon className="h-3.5 w-3.5" style={{ color: hexAlpha(theme.primary, 0.6) }} />
+                    {item.label}
+                  </div>
+                </React.Fragment>
               ))}
             </div>
           </div>
