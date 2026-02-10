@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useCallback, useEffect, useMemo, useState } from "react"
+import React, { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type {
   AuthProvider,
   CartItem,
@@ -245,13 +245,26 @@ export function StoreProvider({
     })
   }, [])
 
-  // Cart (persisted to sessionStorage)
-  const [cart, setCart] = useState<CartItem[]>(() => loadCart())
-  const [cartDiscount, setCartDiscount] = useState(() => loadCartDiscount())
-  const [cartCouponCode, setCartCouponCode] = useState<string | null>(() => loadCartCoupon())
+  // Cart — always start empty for SSR safety, then hydrate from sessionStorage
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [cartDiscount, setCartDiscount] = useState(0)
+  const [cartCouponCode, setCartCouponCode] = useState<string | null>(null)
+  const cartHydrated = useRef(false)
 
-  // Sync cart to sessionStorage on every change
+  // Hydrate cart from sessionStorage on first client mount
   useEffect(() => {
+    const storedCart = loadCart()
+    const storedDiscount = loadCartDiscount()
+    const storedCoupon = loadCartCoupon()
+    if (storedCart.length > 0) setCart(storedCart)
+    if (storedDiscount > 0) setCartDiscount(storedDiscount)
+    if (storedCoupon) setCartCouponCode(storedCoupon)
+    cartHydrated.current = true
+  }, [])
+
+  // Sync cart to sessionStorage on every change, but only after initial hydration
+  useEffect(() => {
+    if (!cartHydrated.current) return
     saveCart(cart, cartDiscount, cartCouponCode)
   }, [cart, cartDiscount, cartCouponCode])
 
