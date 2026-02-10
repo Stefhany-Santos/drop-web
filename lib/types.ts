@@ -10,7 +10,7 @@ export type SubscriptionStatus = "ativo" | "cancelado" | "trial" | "expirado"
 
 export type StoreType = "digital" | "services" | "game-accounts" | "fivem" | "other"
 
-export type PaymentMethod = "pix" | "card" | "stripe"
+export type PaymentMethod = "pix" | "card" | "stripe" | "mercadopago" | "paypal" | "picpay"
 
 // ── White-label types ──
 

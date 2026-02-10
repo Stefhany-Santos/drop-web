@@ -48,3 +48,57 @@ export function formatCompact(value: number): string {
   }
   return value.toString()
 }
+
+// ── CPF Utilities ──
+
+/**
+ * Apply CPF mask: 000.000.000-00
+ * Accepts any string, strips non-digits, and formats progressively.
+ */
+export function formatCPF(input: string): string {
+  const digits = input.replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+  if (digits.length <= 9)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
+}
+
+/**
+ * Strip CPF mask, returning only digits.
+ */
+export function stripCPF(cpf: string): string {
+  return cpf.replace(/\D/g, "")
+}
+
+/**
+ * Validate a CPF using the standard Brazilian check-digit algorithm.
+ * Returns true only for syntactically and mathematically valid CPFs.
+ */
+export function isValidCPF(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, "")
+  if (digits.length !== 11) return false
+
+  // Reject known invalid patterns (all same digit)
+  if (/^(\d)\1{10}$/.test(digits)) return false
+
+  // Validate first check digit
+  let sum = 0
+  for (let i = 0; i < 9; i++) {
+    sum += Number(digits[i]) * (10 - i)
+  }
+  let remainder = (sum * 10) % 11
+  if (remainder === 10) remainder = 0
+  if (remainder !== Number(digits[9])) return false
+
+  // Validate second check digit
+  sum = 0
+  for (let i = 0; i < 10; i++) {
+    sum += Number(digits[i]) * (11 - i)
+  }
+  remainder = (sum * 10) % 11
+  if (remainder === 10) remainder = 0
+  if (remainder !== Number(digits[10])) return false
+
+  return true
+}
